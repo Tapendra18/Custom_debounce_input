@@ -4,7 +4,8 @@ export default function Todo() {
   const [value, setValue] = useState('');
   const [debounce, setDebounce] = useState('');
   const [todos, setTodos] = useState([]);
-  console.log(value, debounce, 'sdsdsd');
+  const [isEditing, setIsEditing] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(null);
 
   useEffect(() => {
     const debounceTimeout = setTimeout(() => {
@@ -19,13 +20,29 @@ export default function Todo() {
 
   const handleClick = () => {
     if (debounce.trim()) {
-      setTodos((prevTodos) => [...prevTodos, debounce]);
+      if (isEditing) {
+        setTodos((prevTodos) =>
+          prevTodos.map((todo, index) =>
+            index === currentIndex ? debounce : todo
+          )
+        );
+        setIsEditing(false);
+        setCurrentIndex(null);
+      } else {
+        setTodos((prevTodos) => [...prevTodos, debounce]);
+      }
       setValue('');
     }
   };
 
-  const handleDelete = (todo) => {
-    console.log(todo, 'todo');
+  const handleDelete = (index) => {
+    setTodos((prevTodos) => prevTodos.filter((_, i) => i !== index));
+  };
+
+  const handleEdit = (index) => {
+    setValue(todos[index]);
+    setIsEditing(true);
+    setCurrentIndex(index);
   };
 
   return (
@@ -41,7 +58,7 @@ export default function Todo() {
             onChange={handleChangeText}
           />
           <button className="todo-button" onClick={handleClick}>
-            Add Todo
+            {isEditing ? 'Update Todo' : 'Add Todo'}
           </button>
         </div>
 
@@ -50,11 +67,11 @@ export default function Todo() {
           {todos.map((todo, index) => (
             <li key={index} className="todo-item">
               <h1>{todo}</h1>
-              <button
-                onClick={() => handleDelete(index)}
-                className="todo-button"
-              >
-                delete
+              <button onClick={() => handleDelete(index)} className="todo-button">
+                Delete
+              </button>
+              <button onClick={() => handleEdit(index)}>
+                Edit
               </button>
             </li>
           ))}
